@@ -13,7 +13,7 @@ export default function ModCard({
   title,
   author,
   image,
-  downloadUrl = "#", // fallback URL if none provided
+  downloadUrl = "#",
   lastUpdated,
   game,
   onDownloadClick,
@@ -32,7 +32,7 @@ export default function ModCard({
   const isKimDog = author === "KimDog Studios";
 
   return (
-    <div className="bg-gray-900 rounded-2xl shadow-lg overflow-hidden border border-gray-700 w-80 flex-shrink-0">
+    <div className="mod-card bg-gray-900 rounded-2xl shadow-lg overflow-hidden border border-transparent w-80 flex-shrink-0">
       <div className="w-full h-48 relative">
         <Image
           src={image}
@@ -84,7 +84,6 @@ export default function ModCard({
           Download
         </Button>
 
-        {/* Hidden anchor element used for programmatic downloads */}
         <a
           href={downloadUrl}
           download
@@ -93,6 +92,43 @@ export default function ModCard({
           aria-hidden="true"
         />
       </div>
+
+      <style jsx>{`
+        @keyframes pulseGlow {
+          0% {
+            box-shadow:
+              0 0 10px #a855f7,
+              inset 0 0 10px #a855f7;
+          }
+          50% {
+            box-shadow:
+              0 0 20px #d8b4fe,
+              inset 0 0 20px #d8b4fe;
+          }
+          100% {
+            box-shadow:
+              0 0 10px #a855f7,
+              inset 0 0 10px #a855f7;
+          }
+        }
+
+        .mod-card {
+          border: 2px solid transparent;
+          border-radius: 1rem;
+          transition: border-color 0.4s ease;
+          box-shadow:
+            0 0 12px rgba(168, 85, 247, 0.6),
+            inset 0 0 10px rgba(168, 85, 247, 0.5);
+          will-change: box-shadow;
+        }
+
+        .mod-card:hover {
+          border-color: #a855f7;
+          animation: pulseGlow 2s infinite ease-in-out;
+          cursor: pointer;
+          z-index: 10;
+        }
+      `}</style>
     </div>
   );
 }

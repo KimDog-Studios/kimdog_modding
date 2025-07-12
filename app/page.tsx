@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import NavigationBar from "./components/NavBar"; // Adjust path if needed
 import { modList } from "./config";
 import ModCard from "./components/ModCards";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Home() {
   const fullTitle = "Download Page";
@@ -12,19 +13,14 @@ export default function Home() {
   const indexRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // For loading delay
   const [loading, setLoading] = useState(true);
-
-  // For download confirmation modal
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingDownloadUrl, setPendingDownloadUrl] = useState<string | null>(null);
-
-  // For continuous rainbow hue cycling
   const [hue, setHue] = useState(0);
   const animationFrameId = useRef<number | null>(null);
 
+  const [downloadSpeedMbps, setDownloadSpeedMbps] = useState<number | null>(null);
+
+  // Typewriter effect for title
   useEffect(() => {
-    // Typewriter effect
     const tick = () => {
       const nextIndex = isDeleting ? indexRef.current - 1 : indexRef.current + 1;
       setDisplayedTitle(fullTitle.slice(0, nextIndex));
@@ -47,14 +43,14 @@ export default function Home() {
     };
   }, [isDeleting]);
 
+  // Loading mods simulation
   useEffect(() => {
-    // Simulate loading delay on mods
     const loadTimeout = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(loadTimeout);
   }, []);
 
+  // Animate hue for background effects if needed
   useEffect(() => {
-    // Animate hue continuously
     const animate = () => {
       setHue((prevHue) => (prevHue + 1) % 360);
       animationFrameId.current = requestAnimationFrame(animate);
@@ -68,6 +64,30 @@ export default function Home() {
     };
   }, []);
 
+  // Measure real download speed once on mount
+  useEffect(() => {
+    const testImage = new window.Image();
+    const imageSizeBytes = 500 * 1024; // Approx 500KB
+    const startTime = performance.now();
+
+    testImage.src =
+      "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg?" +
+      startTime;
+
+    testImage.onload = () => {
+      const endTime = performance.now();
+      const durationSeconds = (endTime - startTime) / 10;
+      const bitsLoaded = imageSizeBytes * 8;
+      const speedBps = bitsLoaded / durationSeconds;
+      const speedMbps = speedBps / (1024 * 1024);
+      setDownloadSpeedMbps(speedMbps);
+    };
+
+    testImage.onerror = () => {
+      setDownloadSpeedMbps(null);
+    };
+  }, []);
+
   // Group mods by game name
   const groupedMods = modList.reduce((groups, mod) => {
     const game = mod.game ?? "Unknown Game";
@@ -78,30 +98,32 @@ export default function Home() {
 
   const sortedGameNames = Object.keys(groupedMods).sort();
 
-  // Handler for download button click
-  const handleDownloadClick = (downloadUrl: string) => {
-    setPendingDownloadUrl(downloadUrl);
-    setShowConfirm(true);
-  };
+  // Real-time download simulation based on detected speed
+  const simulateDownloadToast = (downloadUrl: string) => {
+    const toastId = toast.loading("Getting Download Link...");
 
-  // Confirm download
-  const confirmDownload = () => {
-    if (pendingDownloadUrl) {
-      window.location.href = pendingDownloadUrl;
-    }
-    setShowConfirm(false);
-    setPendingDownloadUrl(null);
-  };
+    const speed = downloadSpeedMbps ?? 10;
+    const totalDurationMs = 500;
+    const stepInterval = Math.max(100, totalDurationMs / (speed * 2));
+    let progress = 0;
 
-  // Cancel download
-  const cancelDownload = () => {
-    setShowConfirm(false);
-    setPendingDownloadUrl(null);
+    const interval = setInterval(() => {
+      progress += 5;
+      if (progress > 100) progress = 100;
+
+      toast.loading(`Getting Download Link... ${progress}%`, { id: toastId });
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        toast.success("✅ Download started!", { id: toastId });
+        window.location.href = downloadUrl;
+      }
+    }, stepInterval);
   };
 
   return (
     <div
-      className="flex flex-col items-center justify-start min-h-screen p-8 pt-0 gap-8 font-[family-name:var(--font-geist-sans)] text-black"
+      className="flex flex-col items-center justify-start min-h-screen p-8 pt-[80px] gap-8 font-[family-name:var(--font-geist-sans)] text-black"
       style={{
         backgroundImage: 'url("/background.png")',
         backgroundSize: "cover",
@@ -109,47 +131,28 @@ export default function Home() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Logo */}
-      <div
-        className="relative w-64 h-64 mb-4 rounded-xl overflow-hidden drop-shadow-[0_0_12px_rgba(0,0,0,0.7)] animate-pulse"
-        style={{ animationDuration: "4s", filter: "drop-shadow(0 0 10px red)" }}
-      >
-        {/* Tint the logo red */}
-        <Image
-          src="/logo.png"
-          alt="Logo"
-          fill
-          style={{
-            objectFit: "contain",
-            filter:
-              "brightness(0) saturate(100%) invert(18%) sepia(96%) saturate(7421%) hue-rotate(350deg) brightness(94%) contrast(120%)",
-          }}
-          priority
-        />
-      </div>
+      <NavigationBar />
 
-      {/* Typewriter Title with continuous rainbow color cycling */}
-      <h1
-        className="text-5xl font-extrabold text-center mb-6 tracking-wide drop-shadow-lg font-mono"
-        style={{
-          color: `hsl(${hue}, 100%, 55%)`,
-          transition: "color 1.0s linear",
-        }}
-      >
+      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
+
+      {/* Typewriter Title */}
+      <h1 className="text-5xl font-extrabold text-center mb-6 tracking-wide drop-shadow-lg font-mono mt-20">
         {displayedTitle}
         <span className="inline-block w-3 h-10 bg-black animate-blink ml-1 align-bottom"></span>
       </h1>
 
       {loading ? (
-        <div className="text-white text-2xl font-semibold mt-12 select-none">Loading mods...</div>
+        <div className="text-white text-2xl font-semibold mt-12 select-none">
+          Loading mods...
+        </div>
       ) : (
         <div className="flex gap-12 overflow-x-auto w-full max-w-[90vw] scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-purple-900">
           {sortedGameNames.map((game) => (
             <div key={game} className="min-w-[20rem] flex flex-col gap-4">
-              {/* Game Title */}
-              <h2 className="text-3xl font-bold text-white drop-shadow-md text-center">{game}</h2>
+              <h2 className="text-3xl font-bold text-white drop-shadow-md text-center">
+                {game}
+              </h2>
 
-              {/* Mod cards in 2 columns grid */}
               <div className="grid grid-cols-2 gap-4">
                 {groupedMods[game].map((mod) => {
                   const anchorRef = React.createRef<HTMLAnchorElement>();
@@ -159,9 +162,11 @@ export default function Home() {
                       title={mod.title}
                       author={mod.author}
                       image={mod.image}
-                      downloadUrl="#" // dummy url to disable default link behavior
+                      downloadUrl="#"
                       onDownloadClick={() =>
-                        handleDownloadClick(`/api/download?file=${encodeURIComponent(mod.downloadUrl)}`)
+                        simulateDownloadToast(
+                          `/api/download?file=${encodeURIComponent(mod.downloadUrl)}`
+                        )
                       }
                       lastUpdated={mod.lastUpdated}
                       game={mod.game}
@@ -175,37 +180,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Confirm Modal */}
-      {showConfirm && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-          onClick={cancelDownload}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-sm w-full text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-semibold mb-4">Confirm Download</h3>
-            <p className="mb-6">Do you want to continue downloading this mod?</p>
-            <div className="flex justify-center gap-6">
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-                onClick={confirmDownload}
-              >
-                Continue
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
-                onClick={cancelDownload}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Blink Cursor Animation */}
       <style jsx>{`
         @keyframes blink {
           0%,
@@ -218,6 +192,27 @@ export default function Home() {
         }
         .animate-blink {
           animation: blink 1s step-start infinite;
+        }
+
+        /* Stronger glow effect for mod cards on hover, no movement */
+        .mod-card {
+          border: 2px solid transparent;
+          border-radius: 12px;
+          transition: box-shadow 0.4s ease, border-color 0.4s ease;
+          box-shadow:
+            0 0 10px rgba(128, 0, 255, 0.6),
+            inset 0 0 8px rgba(128, 0, 255, 0.4);
+          cursor: pointer;
+          will-change: box-shadow;
+        }
+        .mod-card:hover {
+          border-color: #a855f7; /* brighter violet */
+          box-shadow:
+            0 0 25px #a855f7,
+            0 0 50px #a855f7,
+            inset 0 0 25px #a855f7;
+          /* No transform here, so no scaling or movement */
+          z-index: 10;
         }
       `}</style>
     </div>
