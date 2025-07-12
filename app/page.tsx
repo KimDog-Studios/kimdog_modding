@@ -21,7 +21,7 @@ export default function Home() {
 
   // For continuous rainbow hue cycling
   const [hue, setHue] = useState(0);
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
     // Typewriter effect
@@ -62,7 +62,9 @@ export default function Home() {
     animationFrameId.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
     };
   }, []);
 
@@ -149,20 +151,24 @@ export default function Home() {
 
               {/* Mod cards in 2 columns grid */}
               <div className="grid grid-cols-2 gap-4">
-                {groupedMods[game].map((mod) => (
-                  <ModCard
-                    key={mod.title}
-                    title={mod.title}
-                    author={mod.author}
-                    image={mod.image}
-                    downloadUrl="#" // dummy url to disable default link behavior
-                    onDownloadClick={() =>
-                      handleDownloadClick(`/api/download?file=${encodeURIComponent(mod.downloadUrl)}`)
-                    }
-                    lastUpdated={mod.lastUpdated}
-                    game={mod.game}
-                  />
-                ))}
+                {groupedMods[game].map((mod) => {
+                  const anchorRef = React.createRef<HTMLAnchorElement>();
+                  return (
+                    <ModCard
+                      key={mod.title}
+                      title={mod.title}
+                      author={mod.author}
+                      image={mod.image}
+                      downloadUrl="#" // dummy url to disable default link behavior
+                      onDownloadClick={() =>
+                        handleDownloadClick(`/api/download?file=${encodeURIComponent(mod.downloadUrl)}`)
+                      }
+                      lastUpdated={mod.lastUpdated}
+                      game={mod.game}
+                      anchorRef={anchorRef}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))}
