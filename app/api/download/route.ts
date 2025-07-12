@@ -16,7 +16,7 @@ const DOWNLOAD_MAP: Record<string, DownloadInfo> = {
     filename: "[KimDog's-Network] Mega Map.scs",
   },
   "ats-kimdog-mega-mod": {
-    url: "https://www.dropbox.com/scl/fi/4t5y6u7v8w9x0y1z2a3b4/KimDog-Mega-Mod.scs?rlkey=4t5y6u7v8w9x0y1z2a3b4&dl=1",
+    url: "https://www.dropbox.com/scl/fi/erymilk3j8hy7milnde2o/KimDog-s-Network-Mega-Mod.scs?rlkey=pptqjx1q0sveihi3g2uox2kgt&st=bgror5lw&dl=1",
     filename: "[KimDog's-Network] Mega Mod.scs",
   },
 };
