@@ -1,20 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const fileKey = url.searchParams.get("file");
+export async function GET(request: NextRequest) {
+  const fileKey = request.nextUrl.searchParams.get("file");
 
-  // Safe mapping of file keys to environment-based URLs + filenames
   const downloadMap: Record<string, { url: string; filename: string }> = {
     "kimdog-preset": {
-      url: process.env.FILE_KIMDOG_PRESET!,
+      url: "https://www.dropbox.com/scl/fi/lq0ym8h9hn4ljc5cvc5b5/KimDog_Personal.ini?rlkey=pdai9vbt11ns7dcpw48ggbkex&st=9am2td53&dl=1",
       filename: "KimDog_Personal.ini",
     },
     "ac-drift-car-pack": {
-      url: process.env.FILE_DRIFT_PACK!,
-      filename: "KimDog's-Car-Pack.rar",
+      url: "https://www.dropbox.com/scl/fi/emsk38q7melrbe459f0zy/KimDog-s-Car-Pack.rar?rlkey=27n4vz55me0ex9vt1gflz86g0&st=cgiocfs7&dl=1",
+      filename: "KimDog-Car-Pack.rar", // fixed apostrophe issue
     },
-    // Add more as needed
   };
 
   if (!fileKey || !(fileKey in downloadMap)) {
@@ -27,6 +24,7 @@ export async function GET(request: Request) {
     const response = await fetch(downloadUrl);
 
     if (!response.ok || !response.body) {
+      console.error("Fetch failed:", response.statusText);
       return NextResponse.json({ error: "Failed to fetch file" }, { status: 500 });
     }
 
@@ -41,5 +39,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-// Ensure that the environment variables FILE_KIMDOG_PRESET and FILE_DRIFT_PACK are set
-// in your environment for this to work correctly.
+// This code handles file downloads for the KimDog modding website.
+// It uses a mapping of file keys to their download URLs and filenames.
