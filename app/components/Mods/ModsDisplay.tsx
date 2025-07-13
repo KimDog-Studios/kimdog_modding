@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ModCard from "./ModCards";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db } from "../../lib/firebase";
 
 type ModType = {
   productId: string; // maps from Firestore 'id'

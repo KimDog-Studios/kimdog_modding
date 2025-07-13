@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Button from "@mui/material/Button";
-import { ModData } from "../config";
+import { ModData } from "../../config";
 
 type ModCardProps = ModData & {
   game?: string;

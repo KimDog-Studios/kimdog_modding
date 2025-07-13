@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import NavigationBar from "./components/NavBar";
-import ModsDisplay from "./components/ModsDisplay";
+import NavigationBar from "./components/NavBar/NavBar";
+import ModsDisplay from "./components/Mods/ModsDisplay";
 import AuthForm from "./components/AuthForm";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -28,7 +28,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fadeOpacity, setFadeOpacity] = useState(1);
 
-  const fadeDuration = 2000; // 2 seconds fade
+  const fadeDuration = 900; // 0.90 seconds fade
   const displayDuration = 15000; // 15 seconds display
 
   // Timeout ref to clear when component unmounts
