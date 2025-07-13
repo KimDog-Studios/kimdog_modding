@@ -31,6 +31,9 @@ export default function ModCard({
 
   const isKimDog = author === "KimDog Studios";
 
+  // Build your API URL here using the downloadUrl slug
+  const apiDownloadUrl = `/api/download?file=${encodeURIComponent(downloadUrl)}`;
+
   return (
     <div className="mod-card bg-gray-900 rounded-2xl shadow-lg overflow-hidden border border-transparent w-80 flex-shrink-0">
       <div className="w-full h-48 relative">
@@ -84,8 +87,9 @@ export default function ModCard({
           Download
         </Button>
 
+        {/* Hidden link for actual download */}
         <a
-          href={downloadUrl}
+          href={apiDownloadUrl}
           download
           ref={anchorRef}
           style={{ display: "none" }}
