@@ -1,42 +1,109 @@
-"use client";
-
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ModCard from "./ModCards";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 type ModType = {
-  productId: string;
-  game?: string;
-  downloadUrl: string;
-  title: string;
-  author: string;
-  image: string;
+  productId: string; // maps from Firestore 'id'
+  game?: string;     // from Firestore 'game'
+  downloadUrl?: string; // from Firestore 'downloadUrl'
+  title: string;     // from Firestore 'name'
+  author: string;    // from Firestore 'author'
+  image: string;     // from Firestore 'image'
+  description?: string;  // from Firestore 'description'
 };
 
 type ModsDisplayProps = {
-  ownedMods: ModType[];
-  loading: boolean;
-  // Change here: onDownload receives the full mod
+  userId: string;
   onDownload: (mod: ModType) => void;
 };
 
-export default function ModsDisplay({
-  ownedMods,
-  loading,
-  onDownload,
-}: ModsDisplayProps) {
+export default function ModsDisplay({ userId, onDownload }: ModsDisplayProps) {
+  const [ownedMods, setOwnedMods] = useState<ModType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    async function fetchUserPurchases() {
+      setLoading(true);
+      try {
+        const purchasesRef = collection(db, "purchases"); // your Firestore collection
+        const q = query(purchasesRef, where("userId", "==", userId));
+        const snapshot = await getDocs(q);
+
+        const modsFromPurchases: ModType[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          if (!data.name || !data.image || !data.game) {
+            console.warn(
+              `Purchase doc ${doc.id} missing fields (name, image, or game):`,
+              data
+            );
+          }
+
+          return {
+            productId: data.id ?? "unknown-product-id",
+            game: data.game ?? "Unknown Game",
+            downloadUrl: data.downloadUrl ?? "",
+            title: data.name ?? "Untitled Mod",
+            author: data.author ?? "Unknown Author",
+            image: data.image ?? "/default-mod-icon.png",
+            description: data.description,
+          };
+        });
+
+        setOwnedMods(modsFromPurchases);
+      } catch (error) {
+        console.error("Error fetching user purchases:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserPurchases();
+  }, [userId]);
+
+  // Deduplicate mods by productId
+  const uniqueMods = useMemo(() => {
+    const seen = new Set<string>();
+    return ownedMods.filter((mod) => {
+      if (seen.has(mod.productId)) return false;
+      seen.add(mod.productId);
+      return true;
+    });
+  }, [ownedMods]);
+
+  // Group mods by game
   const groupedMods = useMemo(() => {
-    return ownedMods.reduce<Record<string, ModType[]>>((groups, mod) => {
+    return uniqueMods.reduce<Record<string, ModType[]>>((groups, mod) => {
       const gameName = mod.game || "Unknown Game";
       if (!groups[gameName]) groups[gameName] = [];
       groups[gameName].push(mod);
       return groups;
     }, {});
-  }, [ownedMods]);
+  }, [uniqueMods]);
 
-  const sortedGameNames = useMemo(() => Object.keys(groupedMods).sort(), [groupedMods]);
+  const sortedGameNames = useMemo(() => Object.keys(groupedMods).sort(), [
+    groupedMods,
+  ]);
+
+  const anchorRefs = useRef<Record<string, React.RefObject<HTMLAnchorElement | null>>>({});
+
+  sortedGameNames.forEach((game) => {
+    groupedMods[game].forEach((mod) => {
+      if (!anchorRefs.current[mod.productId]) {
+        anchorRefs.current[mod.productId] = React.createRef<HTMLAnchorElement>();
+      }
+    });
+  });
 
   if (loading) {
-    return <div className="text-center text-gray-600 text-xl">Loading your mods...</div>;
+    return (
+      <div className="text-center text-gray-600 text-xl">
+        Loading your mods...
+      </div>
+    );
   }
 
   if (!loading && ownedMods.length === 0) {
@@ -56,23 +123,18 @@ export default function ModsDisplay({
           <h2 className="text-2xl font-semibold mb-4">{game}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {groupedMods[game].map((mod) => {
-              const anchorRef = useRef<HTMLAnchorElement>(null);
-
-              const handleDownloadClick = () => {
-                // Pass the whole mod to onDownload
-                onDownload(mod);
-              };
+              const anchorRef = anchorRefs.current[mod.productId];
 
               return (
                 <ModCard
                   key={mod.productId}
                   productId={mod.productId}
                   game={mod.game}
-                  downloadUrl={mod.downloadUrl}
+                  downloadUrl={mod.downloadUrl ?? ""}
                   title={mod.title}
                   author={mod.author}
                   image={mod.image}
-                  onDownloadClick={handleDownloadClick}
+                  onDownloadClick={() => onDownload(mod)}
                   anchorRef={anchorRef}
                 />
               );

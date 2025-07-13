@@ -2,63 +2,26 @@
 
 import React, { useState, useEffect } from "react";
 import NavigationBar from "./components/NavBar";
-import { modList } from "./config";
 import ModsDisplay from "./components/ModsDisplay";
 import AuthForm from "./components/AuthForm";
 import toast, { Toaster } from "react-hot-toast";
 
-import { firestore } from "./lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 
-type ModType = typeof modList[number];
-
 export default function Home() {
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [ownedMods, setOwnedMods] = useState<ModType[]>([]);
 
   useEffect(() => {
     const auth = getAuth();
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      if (firebaseUser) {
-        fetchUserOwnedMods(firebaseUser.uid);
-      } else {
-        setOwnedMods([]);
-        setLoading(false);
-      }
     });
 
     return () => unsubscribe();
   }, []);
 
-  async function fetchUserOwnedMods(uid: string) {
-    setLoading(true);
-    try {
-      const q = query(collection(firestore, "purchases"), where("userId", "==", uid));
-      const snapshot = await getDocs(q);
-
-      const ownedProductIds = new Set<string>();
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data?.productId) {
-          ownedProductIds.add(data.productId);
-        }
-      });
-
-      const filteredMods = modList.filter((mod) => ownedProductIds.has(mod.productId));
-
-      setOwnedMods(filteredMods);
-    } catch (error) {
-      toast.error("Failed to load owned mods.");
-      console.error("Error fetching owned mods:", error);
-    }
-    setLoading(false);
-  }
-
-  function handleDownload(mod: ModType) {
+  function handleDownload(mod: any) {
     // Open your API endpoint with 'file' query param set to productId
     const apiUrl = `/api/download?file=${encodeURIComponent(mod.productId)}`;
     window.open(apiUrl, "_blank");
@@ -80,7 +43,8 @@ export default function Home() {
         {!user && <AuthForm onLoginSuccess={() => {}} />}
 
         {user && (
-          <ModsDisplay ownedMods={ownedMods} loading={loading} onDownload={handleDownload} />
+          // Pass userId and onDownload, ModsDisplay will fetch purchases itself
+          <ModsDisplay userId={user.uid} onDownload={handleDownload} />
         )}
       </main>
     </>

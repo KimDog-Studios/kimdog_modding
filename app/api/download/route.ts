@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 type DownloadInfo = { url: string; filename: string };
 
 const DOWNLOAD_MAP: Record<string, DownloadInfo> = {
-  "kimdog-preset": {
+  "kimdogs-preset": {
     url: "https://www.dropbox.com/scl/fi/lq0ym8h9hn4ljc5cvc5b5/KimDog_Personal.ini?rlkey=pdai9vbt11ns7dcpw48ggbkex&st=9am2td53&dl=1",
     filename: "KimDog_Personal.ini",
   },
@@ -11,11 +11,11 @@ const DOWNLOAD_MAP: Record<string, DownloadInfo> = {
     url: "https://www.dropbox.com/scl/fi/emsk38q7melrbe459f0zy/KimDog-s-Car-Pack.rar?rlkey=27n4vz55me0ex9vt1gflz86g0&st=cgiocfs7&dl=1",
     filename: "KimDog-Car-Pack.rar",
   },
-  "ats-kimdog-mega-map": {
+  "ats-kimdogs-mega-map": {
     url: "https://www.dropbox.com/scl/fi/tkqk4zraz2ro6nkboyzdz/KimDog-s-Network-Mega-Map.scs?rlkey=20lz0i79pujo5lv2z69m3axcy&st=60o3s2ra&dl=1",
     filename: "[KimDog's-Network] Mega Map.scs",
   },
-  "ats-kimdog-mega-mod": {
+  "ats-kimdogs-mega-mod": {
     url: "https://www.dropbox.com/scl/fi/erymilk3j8hy7milnde2o/KimDog-s-Network-Mega-Mod.scs?rlkey=pptqjx1q0sveihi3g2uox2kgt&st=bgror5lw&dl=1",
     filename: "[KimDog's-Network] Mega Mod.scs",
   },

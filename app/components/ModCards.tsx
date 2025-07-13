@@ -6,7 +6,7 @@ import { ModData } from "../config";
 type ModCardProps = ModData & {
   game?: string;
   onDownloadClick: () => void;
-  anchorRef: React.Ref<HTMLAnchorElement>;
+  anchorRef: React.RefObject<HTMLAnchorElement | null>;
 };
 
 export default function ModCard({
