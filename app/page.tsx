@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import NavigationBar from "./components/NavBar/NavBar";
-import ModsDisplay from "./components/Mods/ModsDisplay";
+import ModsDisplay from "./components/ModManager";
 import AuthForm from "./components/AuthForm";
 import toast, { Toaster } from "react-hot-toast";
 
